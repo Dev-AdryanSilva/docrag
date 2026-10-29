@@ -256,7 +256,7 @@ Desenvolvi o DocRAG com o **Claude Code** (assistente de programação da Anthro
 **Como foi o processo:**
 - Antes de escrever código, defini um plano em 7 etapas: esqueleto, banco, ingestão, RAG, interface, testes e documentação.
 - A IA implementava uma etapa por vez e parava. Eu testava, validava e só então seguia para a próxima.
-- As mudanças passaram a entrar por pull request, revisadas por mim antes do merge.
+- No começo, os commits entravam direto na `main`. Na última etapa, passei a usar pull requests: a documentação entrou por PR, com os testes rodando no CI e minha revisão antes do merge.
 
 **Decisões que tomei durante o projeto:**
 - adotar a busca híbrida, depois de ver o edital grande dominando os resultados;
