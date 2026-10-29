@@ -32,12 +32,32 @@ def semantic_search(question: str) -> list[tuple[Chunk, float]]:
 
 
 def keyword_search(question: str) -> list[Chunk]:
-    """Busca por palavras-chave (BM25): os top-k chunks que contêm os termos da pergunta."""
+    """Busca por palavras-chave (BM25): os top-k chunks que contêm os termos da pergunta.
+
+    Só entram chunks com pelo menos uma palavra da pergunta: sem esse filtro, o BM25 sempre
+    devolvia top-k trechos, e os sem relação empurravam os bons para fora da fusão.
+    (O filtro olha as palavras, não a nota: em índices pequenos, uma palavra presente em
+    metade dos chunks recebe peso 0 no BM25, mesmo estando no trecho.)
+    """
     index = get_bm25()
     if index is None:
         return []
     bm25, chunks = index
-    return bm25.get_top_n(tokenize(question), chunks, n=settings.top_k)
+    words = tokenize(question)
+    scores = bm25.get_scores(words)
+    ranked = sorted(range(len(chunks)), key=lambda i: scores[i], reverse=True)
+    matching = [chunks[i] for i in ranked if set(words) & set(tokenize(chunks[i].page_content))]
+    return matching[: settings.top_k]
+
+
+def search_query(question: str, history: list[dict]) -> str:
+    """Texto usado nas buscas: a pergunta atual mais a pergunta anterior do usuário.
+
+    Perguntas de continuação ("e a outra experiência?") não dizem o assunto sozinhas.
+    O histórico completo continua indo para o LLM; aqui entra só para achar os trechos.
+    """
+    previous = [m["content"] for m in history if m["role"] == "user"]
+    return f"{previous[-1]} {question}" if previous else question
 
 
 def fuse(rankings: list[list[Chunk]]) -> list[Chunk]:
@@ -99,7 +119,8 @@ def answer_question(question: str, history: list[dict]) -> tuple[str, list[dict]
     `history` é a lista de mensagens anteriores ({"role", "content"}), da mais antiga
     para a mais recente. Retorna (resposta, fontes).
     """
-    semantic = semantic_search(question)
+    query = search_query(question, history)
+    semantic = semantic_search(query)
 
     # Se nem o chunk mais parecido passa do limiar, a pergunta está fora do assunto
     # dos documentos: responde sem gastar uma chamada ao LLM
@@ -108,7 +129,7 @@ def answer_question(question: str, history: list[dict]) -> tuple[str, list[dict]
 
     # Busca híbrida: a semântica entende sinônimos; o BM25 acha termos exatos
     # ("trancada", "recesso") mesmo quando um PDF grande domina a busca semântica
-    chunks = fuse([[chunk for chunk, _ in semantic], keyword_search(question)])
+    chunks = fuse([[chunk for chunk, _ in semantic], keyword_search(query)])
 
     # O LLM recebe os chunks combinados e decide o que é relevante
     system = SYSTEM_PROMPT.format(not_found=NOT_FOUND_MESSAGE, context=build_context(chunks))

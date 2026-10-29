@@ -137,6 +137,31 @@ def test_follow_up_question_sends_history(client, auth, fake_search, fake_llm):
     assert [m["role"] for m in conversation["messages"]] == ["user", "assistant", "user", "assistant"]
 
 
+def test_follow_up_searches_with_previous_question(client, auth, fake_llm, monkeypatch):
+    # "E a outra experiência?" sozinha não diz o assunto: a busca precisa da pergunta anterior
+    queries = []
+
+    def semantic(query):
+        queries.append(query)
+        return [(CHUNK_P3, 0.8)]
+
+    monkeypatch.setattr(rag, "semantic_search", semantic)
+    monkeypatch.setattr(rag, "keyword_search", lambda query: [])
+    fake_llm("Resposta (regulamento.pdf, p. 3).")
+
+    first = client.post("/perguntar", json={"pergunta": "Quais experiências tem o currículo?"}, headers=auth).json()
+    client.post(
+        "/perguntar",
+        json={"pergunta": "E a outra experiência?", "conversation_id": first["conversation_id"]},
+        headers=auth,
+    )
+
+    assert queries == [
+        "Quais experiências tem o currículo?",
+        "Quais experiências tem o currículo? E a outra experiência?",
+    ]
+
+
 def test_unknown_conversation_returns_404(client, auth, fake_search, fake_llm):
     fake_search()
     fake_llm("qualquer coisa")

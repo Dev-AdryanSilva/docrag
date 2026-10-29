@@ -60,6 +60,10 @@ flowchart LR
 
 **Por que mostrar só as fontes citadas?** O LLM recebe 4 trechos, mas nem sempre usa todos. A API confere quais documentos e páginas aparecem na resposta e mostra só esses. Se o LLM não citar nada no formato esperado, mostra todos os trechos enviados, para nunca esconder a origem.
 
+**Como funcionam as perguntas de continuação?** Uma pergunta como "e a outra experiência?" não diz o assunto sozinha. Por isso a busca usa a pergunta atual junto com a pergunta anterior do usuário; o histórico completo vai só para o LLM. Sem isso, a busca encontrava trechos de outros documentos e respondia "não encontrei".
+
+**Por que o BM25 ignora acentos e palavras comuns?** Muita gente digita "curriculo" em vez de "currículo", e palavras como "que", "o" e "para" aparecem em todo texto. Sem esse tratamento, o BM25 trazia trechos sem relação, que empurravam os trechos certos para fora da fusão. Agora ele também só devolve trechos que têm pelo menos uma palavra da pergunta.
+
 **Por que o LLM fica isolado?** Todo o contato com o Gemini está em `app/llm.py`, numa função `generate(messages) -> str`. Trocar por Groq, OpenAI ou um modelo local no Ollama é reescrever essa função; o resto do código não muda.
 
 ## Como rodar
@@ -189,14 +193,14 @@ curl -X POST http://localhost:8000/feedback \
 pytest
 ```
 
-São 35 testes que rodam em cerca de 1 segundo. Eles não chamam o Gemini, não carregam o modelo de embeddings e não precisam do PostgreSQL: o LLM e as buscas são trocados por versões falsas, e o banco vira um SQLite temporário. O GitHub Actions roda os testes a cada push e pull request.
+São 41 testes que rodam em cerca de 2 segundos. Eles não chamam o Gemini, não carregam o modelo de embeddings e não precisam do PostgreSQL: o LLM e as buscas são trocados por versões falsas, e o banco vira um SQLite temporário. O GitHub Actions roda os testes a cada push e pull request.
 
 | Arquivo | O que cobre |
 |---|---|
 | `tests/test_ingest.py` | Leitura de TXT (UTF-8 e Latin-1), DOCX e PDF; divisão em trechos; número da página |
-| `tests/test_perguntar.py` | Limiar que evita chamar o LLM, fontes citadas, histórico da conversa, falha do LLM, feedback |
+| `tests/test_perguntar.py` | Limiar que evita chamar o LLM, fontes citadas, histórico da conversa, busca nas perguntas de continuação, falha do LLM, feedback |
 | `tests/test_auth.py` | Rotas protegidas recusam chave ausente ou errada; rotas públicas abertas; upload |
-| `tests/test_rag.py` | Busca BM25, fusão RRF e verificação das citações |
+| `tests/test_rag.py` | Busca BM25 (acentos, stopwords, trechos sem relação), fusão RRF e verificação das citações |
 
 Os testes já pegaram um bug real: uma resposta que citava "p. 10" fazia o sistema mostrar também a página 1 como fonte, porque "p. 1" está contido em "p. 10".
 
