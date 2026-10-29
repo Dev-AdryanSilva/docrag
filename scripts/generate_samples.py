@@ -1,9 +1,10 @@
 """Gera os documentos de exemplo da demo em data/docs/, um de cada formato aceito.
 
 - manual_cafeteira_aurora.pdf: manual de produto, com uma tabela de códigos de erro
-- politica_trabalho_remoto.docx: política interna de uma empresa
-- contrato_prestacao_servicos.txt: contrato simples de prestação de serviços
+- política_trabalho_remoto.docx: política interna de uma empresa
+- contrato_prestação_serviços.txt: contrato simples de prestação de serviços
 
+Os nomes têm acento porque viram o título do documento na interface.
 Todo o conteúdo é fictício. Uso:  python scripts/generate_samples.py
 """
 
@@ -161,8 +162,8 @@ Após o pagamento integral, todos os direitos sobre o site passam para a CONTRAT
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     build_manual(OUTPUT_DIR / "manual_cafeteira_aurora.pdf")
-    build_docx(OUTPUT_DIR / "politica_trabalho_remoto.docx", REMOTE_POLICY)
-    (OUTPUT_DIR / "contrato_prestacao_servicos.txt").write_text(CONTRACT, encoding="utf-8")
+    build_docx(OUTPUT_DIR / "política_trabalho_remoto.docx", REMOTE_POLICY)
+    (OUTPUT_DIR / "contrato_prestação_serviços.txt").write_text(CONTRACT, encoding="utf-8")
     print(f"Exemplos gerados em {OUTPUT_DIR}/")
 
 
