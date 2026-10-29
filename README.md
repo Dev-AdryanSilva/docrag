@@ -258,8 +258,8 @@ Desenvolvi o DocRAG com o **Claude Code** (assistente de programação da Anthro
 - A IA implementava uma etapa por vez e parava. Eu testava, validava e só então seguia para a próxima.
 - No começo, os commits entravam direto na `main`. Na última etapa, passei a usar pull requests: a documentação entrou por PR, com os testes rodando no CI e minha revisão antes do merge.
 
-**Sugestões da IA que avaliei e escolhi:**
-- a busca híbrida: quando um edital grande passou a dominar os resultados, a IA propôs quatro soluções e eu escolhi combinar BM25 com a busca semântica.
+**Sugestões da IA que avaliei e aprovei:**
+- a busca híbrida: quando um edital grande passou a dominar os resultados, questionei as alternativas possíveis, pedi ajuda à IA para compará-las e aprovei a sugestão de combinar BM25 com a busca semântica.
 
 **Decisões que tomei durante o projeto:**
 - transformar o projeto de um chatbot de regulamentos em um assistente de documentos genérico;
