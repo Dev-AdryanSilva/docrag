@@ -25,6 +25,8 @@ API_OFFLINE_MESSAGE = "Erro: não consegui falar com a API. Verifique se o servi
 # Citação que o LLM escreve no texto, ex.: " (manual.pdf, p. 2)" ou " (politica.docx)".
 # Na tela ela vai para "Fontes"
 CITATION_PATTERN = re.compile(r"\s*\([^()]*\.(?:pdf|docx|txt)(?:, p\. \d+)?\)")
+# Linha separadora de tabela Markdown, ex.: "|---|:---:|---|"
+TABLE_SEPARATOR = re.compile(r"^\|?[\s:\-|]+\|?$")
 USER_AVATAR = ":material/person:"
 ASSISTANT_AVATAR = ":material/description:"
 
@@ -62,6 +64,32 @@ def place(document: str, page: int | None) -> str:
     """Onde está um trecho: 'Manual, p. 2' ou só 'Politica' (Word e TXT não têm página)."""
     name = friendly_name(document)
     return name if page is None else f"{name}, p. {page}"
+
+
+def plain_excerpt(text: str) -> str:
+    """Tira a marcação Markdown do trecho para exibir como texto corrido.
+
+    Os PDFs são guardados em Markdown (ajuda o LLM a ler tabelas), mas na tela
+    "# **Título**" vira "Título" e a linha "|E1|Sem água|" vira "E1 · Sem água".
+    Títulos e linhas de tabela ficam em linhas próprias; o texto corrido é emendado.
+    """
+    blocks: list[str] = []
+    joining = False  # o último bloco é texto corrido que pode receber a próxima linha
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or TABLE_SEPARATOR.match(line):
+            joining = False
+            continue
+        is_heading, is_row = line.startswith("#"), line.startswith("|")
+        line = line.lstrip("#").replace("**", "").strip()
+        if is_row:
+            line = " · ".join(cell.strip() for cell in line.strip("|").split("|"))
+        if joining and not (is_heading or is_row):
+            blocks[-1] += " " + line
+        else:
+            blocks.append(line)
+        joining = not (is_heading or is_row)
+    return "\n".join(" ".join(block.split()) for block in blocks)
 
 
 def document_details(document: dict) -> str:
@@ -320,7 +348,7 @@ def render_sources(sources: list[dict]) -> None:
     with st.expander(f"Fontes: {summary}"):
         for source in sources:
             title = html.escape(place(source["documento"], source["pagina"]))
-            excerpt = html.escape(" ".join(source["trecho"].split()))
+            excerpt = html.escape(plain_excerpt(source["trecho"]))
             st.markdown(
                 f'<p class="source-title">{title}</p><div class="excerpt">{excerpt}…</div>',
                 unsafe_allow_html=True,

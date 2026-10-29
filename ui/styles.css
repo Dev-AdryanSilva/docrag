@@ -177,6 +177,8 @@ html[data-motion="reduced"] *::after {
   font-size: 0.9rem;
   line-height: 1.55;
   overflow-wrap: anywhere;
+  /* Mantém as quebras entre títulos e linhas de tabela (ver plain_excerpt) */
+  white-space: pre-line;
 }
 .source-title {
   margin: 0;
