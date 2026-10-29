@@ -22,17 +22,18 @@ STYLES_PATH = Path(__file__).parent / "styles.css"
 FILE_TYPES = ["pdf", "docx", "txt"]
 NOT_FOUND_MESSAGE = "Não encontrei essa informação nos documentos."
 API_OFFLINE_MESSAGE = "Erro: não consegui falar com a API. Verifique se o servidor está rodando."
-# Citação que o LLM escreve no texto, ex.: " (regulamento.pdf, p. 2)" ou " (politica.docx)".
+# Citação que o LLM escreve no texto, ex.: " (manual.pdf, p. 2)" ou " (politica.docx)".
 # Na tela ela vai para "Fontes"
 CITATION_PATTERN = re.compile(r"\s*\([^()]*\.(?:pdf|docx|txt)(?:, p\. \d+)?\)")
 USER_AVATAR = ":material/person:"
 ASSISTANT_AVATAR = ":material/description:"
 
-# Perguntas de exemplo (sobre o regulamento de exemplo do projeto), mostradas com a conversa vazia
+# Perguntas de exemplo, uma para cada documento gerado por scripts/generate_samples.py
+# (PDF com tabela, Word e TXT), mostradas com a conversa vazia
 SUGGESTIONS = [
-    "Quantas horas por semana posso estagiar?",
-    "Posso estagiar com a matrícula trancada?",
-    "O estagiário tem direito a recesso?",
+    "O que significa o erro E3 na cafeteira?",
+    "Quantos dias por semana posso trabalhar de casa?",
+    "Qual a multa se o contrato for cancelado antes da entrega?",
 ]
 
 # Opções de tamanho da fonte: texto mostrado na tela -> valor usado pelo CSS
@@ -48,7 +49,7 @@ LOGO_SVG = (
 
 
 def friendly_name(filename: str) -> str:
-    """'regulamento_estagio.pdf' -> 'Regulamento estagio'."""
+    """'manual_cafeteira.pdf' -> 'Manual cafeteira'."""
     name = filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ")
     return name[:1].upper() + name[1:]
 
@@ -58,7 +59,7 @@ def plural(count: int, singular: str, plural_form: str) -> str:
 
 
 def place(document: str, page: int | None) -> str:
-    """Onde está um trecho: 'Regulamento, p. 2' ou só 'Politica' (Word e TXT não têm página)."""
+    """Onde está um trecho: 'Manual, p. 2' ou só 'Politica' (Word e TXT não têm página)."""
     name = friendly_name(document)
     return name if page is None else f"{name}, p. {page}"
 
@@ -299,7 +300,7 @@ def render_empty_state(documents: list[dict] | None) -> None:
     if not documents:
         st.write("Envie um arquivo em **Adicionar documento**, na barra lateral, para começar.")
         return
-    st.write("Escreva sua pergunta no campo abaixo ou teste com o regulamento de exemplo:")
+    st.write("Escreva sua pergunta no campo abaixo ou experimente uma destas:")
     with st.container(horizontal=True, gap="small"):
         for index, question in enumerate(SUGGESTIONS):
             st.button(

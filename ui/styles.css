@@ -83,10 +83,16 @@ html[data-motion="reduced"] *::after {
   outline-offset: 2px;
   border-radius: 6px;
 }
-/* Campo de pergunta: o contorno vai na caixa, não só no texto */
-[data-testid="stChatInput"] > div:has(textarea:focus-visible) {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
+/* Campo de pergunta: um único anel na caixa. O Streamlit já pinta a borda de 1px;
+   a sombra de 2px encosta nela e as duas formam uma linha só de 3px.
+   O texto dentro da caixa não ganha contorno próprio (senão viram dois) */
+[data-testid="stChatInput"] textarea:focus-visible {
+  outline: none !important;
+}
+[data-testid="stChatInput"] > div:has(textarea:focus) {
+  border-color: var(--focus) !important;
+  box-shadow: 0 0 0 2px var(--focus);
+  outline: none !important;
 }
 
 /* ---------- Alvos de toque (mínimo de 44px) ---------- */

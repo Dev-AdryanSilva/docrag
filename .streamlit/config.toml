@@ -9,7 +9,6 @@ showSidebarBorder = true
 showWidgetBorder = true
 
 [theme.light]
-base = "light"
 primaryColor = "#0E6B53"
 backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F3F5F2"
@@ -23,7 +22,6 @@ greenTextColor = "#0E6B53"
 backgroundColor = "#F3F5F2"
 
 [theme.dark]
-base = "dark"
 primaryColor = "#5FCCA3"
 backgroundColor = "#111513"
 secondaryBackgroundColor = "#1B211E"

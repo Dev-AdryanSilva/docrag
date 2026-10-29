@@ -1,0 +1,28 @@
+CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DESENVOLVIMENTO DE SITE
+
+CONTRATANTE: Padaria Exemplo Ltda.
+CONTRATADA: Estúdio Exemplo de Design Ltda.
+
+CLÁUSULA 1 - OBJETO
+A CONTRATADA vai desenvolver o site institucional da CONTRATANTE, com até 5 páginas,
+formulário de contato e versão para celular.
+
+CLÁUSULA 2 - PRAZO
+O site será entregue em até 45 dias corridos, contados da assinatura deste contrato e do
+envio, pela CONTRATANTE, dos textos e das imagens.
+
+CLÁUSULA 3 - VALOR E PAGAMENTO
+O valor total é de R$ 6.000,00, pago em duas parcelas: 50% na assinatura e 50% na entrega.
+Atrasos no pagamento geram multa de 2% e juros de 1% ao mês.
+
+CLÁUSULA 4 - REVISÕES
+Estão incluídas 2 rodadas de revisão após a entrega do layout. Revisões extras custam
+R$ 150,00 por hora.
+
+CLÁUSULA 5 - RESCISÃO
+Qualquer uma das partes pode encerrar o contrato com aviso prévio de 15 dias. Se a
+CONTRATANTE encerrar o contrato antes da entrega, sem culpa da CONTRATADA, pagará multa
+de 20% sobre o valor que ainda falta pagar.
+
+CLÁUSULA 6 - DIREITOS
+Após o pagamento integral, todos os direitos sobre o site passam para a CONTRATANTE.
