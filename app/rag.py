@@ -4,7 +4,7 @@ from langchain_core.documents import Document as Chunk
 
 from app import llm
 from app.config import settings
-from app.ingest import NO_PAGE, get_bm25, get_vectorstore
+from app.ingest import NO_PAGE, get_bm25, get_vectorstore, tokenize
 
 NOT_FOUND_MESSAGE = "Não encontrei essa informação nos documentos."
 
@@ -33,8 +33,11 @@ def semantic_search(question: str) -> list[tuple[Chunk, float]]:
 
 def keyword_search(question: str) -> list[Chunk]:
     """Busca por palavras-chave (BM25): os top-k chunks que contêm os termos da pergunta."""
-    bm25 = get_bm25()
-    return bm25.invoke(question) if bm25 else []
+    index = get_bm25()
+    if index is None:
+        return []
+    bm25, chunks = index
+    return bm25.get_top_n(tokenize(question), chunks, n=settings.top_k)
 
 
 def fuse(rankings: list[list[Chunk]]) -> list[Chunk]:

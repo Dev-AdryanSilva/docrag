@@ -5,10 +5,10 @@ from pathlib import Path
 import docx2txt
 import pymupdf4llm
 from langchain_chroma import Chroma
-from langchain_community.retrievers import BM25Retriever
 from langchain_core.documents import Document as Chunk
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from rank_bm25 import BM25Okapi
 
 from app.config import settings
 
@@ -41,9 +41,10 @@ def tokenize(text: str) -> list[str]:
 
 
 @lru_cache
-def get_bm25() -> BM25Retriever | None:
+def get_bm25() -> tuple[BM25Okapi, list[Chunk]] | None:
     """Monta o índice de palavras-chave (BM25) com todos os chunks salvos no Chroma.
 
+    Devolve o índice e a lista de chunks na mesma ordem (o BM25 só guarda as palavras).
     Fica em cache; é refeito sempre que um documento é adicionado ou removido.
     """
     data = get_vectorstore().get()
@@ -53,7 +54,7 @@ def get_bm25() -> BM25Retriever | None:
         Chunk(page_content=text, metadata=metadata)
         for text, metadata in zip(data["documents"], data["metadatas"])
     ]
-    return BM25Retriever.from_documents(chunks, k=settings.top_k, preprocess_func=tokenize)
+    return BM25Okapi([tokenize(c.page_content) for c in chunks]), chunks
 
 
 # ---------- Leitura de cada formato: devolve uma lista de (página, texto) ----------

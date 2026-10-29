@@ -1,11 +1,57 @@
-"""Testes das funções puras do RAG: fusão das buscas e montagem das fontes."""
+"""Testes das funções do RAG: busca por palavras-chave, fusão das buscas e montagem das fontes."""
 
-from app import rag
+import pytest
+
+from app import ingest, rag
 from tests.conftest import make_chunk
 
 A = make_chunk("trecho A", pagina=1)
 B = make_chunk("trecho B", pagina=2)
 C = make_chunk("trecho C", pagina=3)
+
+
+class FakeVectorstore:
+    """Imita o `get()` do Chroma, que devolve todos os chunks salvos."""
+
+    def __init__(self, chunks):
+        self.chunks = chunks
+
+    def get(self):
+        return {
+            "documents": [c.page_content for c in self.chunks],
+            "metadatas": [c.metadata for c in self.chunks],
+        }
+
+
+@pytest.fixture
+def fake_vectorstore(monkeypatch):
+    def setup(chunks):
+        monkeypatch.setattr(ingest, "get_vectorstore", lambda: FakeVectorstore(chunks))
+        ingest.get_bm25.cache_clear()  # o índice BM25 fica em cache entre chamadas
+
+    yield setup
+    ingest.get_bm25.cache_clear()
+
+
+def test_keyword_search_finds_exact_term(fake_vectorstore):
+    fake_vectorstore([
+        make_chunk("O recesso acontece em julho.", pagina=1),
+        make_chunk("A matrícula trancada pode ser reaberta no semestre seguinte.", pagina=2),
+        make_chunk("As inscrições abrem em março.", pagina=3),
+        make_chunk("O estágio obrigatório tem 300 horas.", pagina=4),
+        make_chunk("A biblioteca abre às 8h.", pagina=5),
+    ])
+
+    results = rag.keyword_search("Posso reabrir uma matrícula TRANCADA?")
+
+    # Maiúsculas e pontuação não atrapalham: o tokenize normaliza a pergunta
+    assert results[0].metadata["pagina"] == 2
+
+
+def test_keyword_search_without_documents(fake_vectorstore):
+    fake_vectorstore([])
+
+    assert rag.keyword_search("qualquer coisa") == []
 
 
 def test_fuse_puts_chunk_found_by_both_searches_first():
