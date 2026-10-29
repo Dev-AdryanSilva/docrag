@@ -1,4 +1,5 @@
 import re
+import unicodedata
 from functools import lru_cache
 from pathlib import Path
 
@@ -35,9 +36,26 @@ def get_vectorstore() -> Chroma:
     )
 
 
+# Palavras comuns que aparecem em quase todo texto e não ajudam a achar o trecho certo.
+# Sem esta lista, "que", "o" e "para" contavam como palavras-chave no BM25 (já sem acento)
+STOPWORDS = frozenset(
+    """
+    a ao aos as com como da das de do dos e ela ele em entao essa esse esta este eu foi
+    ha isso ja mais mas me meu minha na nas no nos o onde os ou outra outro para pela pelo
+    por qual quais quando quanto quantos quantas que se sem ser seu sua sao sobre tem ter
+    um uma voce
+    """.split()
+)
+
+
 def tokenize(text: str) -> list[str]:
-    """Quebra o texto em palavras minúsculas, sem pontuação (usado pelo BM25)."""
-    return re.findall(r"\w+", text.lower())
+    """Prepara o texto para o BM25: minúsculas, sem acentos, sem pontuação e sem stopwords.
+
+    Sem acentos porque é comum digitar "curriculo" para achar "currículo".
+    """
+    text = unicodedata.normalize("NFKD", text.lower())
+    text = "".join(char for char in text if not unicodedata.combining(char))
+    return [word for word in re.findall(r"\w+", text) if word not in STOPWORDS]
 
 
 @lru_cache

@@ -54,6 +54,52 @@ def test_keyword_search_without_documents(fake_vectorstore):
     assert rag.keyword_search("qualquer coisa") == []
 
 
+def test_keyword_search_ignores_accents(fake_vectorstore):
+    fake_vectorstore([
+        make_chunk("Experiência com análise de dados em Python.", pagina=1),
+        make_chunk("O recesso acontece em julho.", pagina=2),
+    ])
+
+    # Digitado sem acento, como muita gente faz
+    results = rag.keyword_search("experiencia com analise")
+
+    assert results[0].metadata["pagina"] == 1
+
+
+def test_keyword_search_drops_unrelated_chunks(fake_vectorstore):
+    # Antes, o BM25 sempre devolvia top-k trechos, mesmo sem nenhuma palavra em comum,
+    # e esses trechos sem relação empurravam os bons para fora da fusão
+    fake_vectorstore([
+        make_chunk("Que o contrato seja pago para a empresa.", pagina=1),
+        make_chunk("A cafeteira desliga sozinha depois de 40 minutos.", pagina=2),
+        make_chunk("Analista de dados na empresa Exemplo.", pagina=3),
+    ])
+
+    # Só "dados" importa: "que", "o" e "para" são stopwords
+    results = rag.keyword_search("que dados o para")
+
+    assert [c.metadata["pagina"] for c in results] == [3]
+
+
+def test_tokenize_removes_accents_and_stopwords():
+    assert ingest.tokenize("Qual é a experiência DELE em Análise?") == ["experiencia", "dele", "analise"]
+
+
+def test_search_query_adds_previous_question():
+    history = [
+        {"role": "user", "content": "Quais experiências tem o currículo?"},
+        {"role": "assistant", "content": "Consultor de vendas."},
+    ]
+
+    query = rag.search_query("E a outra?", history)
+
+    assert query == "Quais experiências tem o currículo? E a outra?"
+
+
+def test_search_query_without_history():
+    assert rag.search_query("Quantas horas?", []) == "Quantas horas?"
+
+
 def test_fuse_puts_chunk_found_by_both_searches_first():
     semantic = [A, B]
     keyword = [C, B]
