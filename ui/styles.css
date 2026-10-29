@@ -1,0 +1,246 @@
+/*
+  Estilos da interface do chatbot.
+
+  Como o tema funciona:
+  - As cores base estão em .streamlit/config.toml ([theme.light] e [theme.dark]).
+  - Aqui, cada cor vira um token (variável CSS). light-dark(cor_clara, cor_escura)
+    escolhe sozinha a cor do tema ativo, porque o Streamlit marca o app com
+    color-scheme: light ou dark.
+  - As preferências da barra lateral chegam como atributos na tag html
+    (data-contrast, data-font, data-motion), gravados pelo streamlit_app.py.
+  - Atenção: não escreva nada parecido com uma tag HTML nestes comentários; o
+    Streamlit sanitiza o CSS e descarta o arquivo inteiro se encontrar uma.
+*/
+
+/* ---------- Tokens de cor ---------- */
+
+:root {
+  --bg: light-dark(#FFFFFF, #111513);
+  --surface: light-dark(#F3F5F2, #1B211E);
+  --text: light-dark(#1A1F1C, #E7ECE9);
+  --muted: light-dark(#4F5852, #A9B3AD);
+  --accent: light-dark(#0E6B53, #5FCCA3);
+  --on-accent: light-dark(#FFFFFF, #0B1310);
+  --border: light-dark(#7D857F, #7A847E);
+  --soft: light-dark(#E3EFE9, #1D3A30);
+  --focus: light-dark(#0E6B53, #5FCCA3);
+  --user-message: var(--surface);
+  --selection: light-dark(#CDE6DB, #2A5A49);
+}
+
+/* Alto contraste: preto e branco puros, bordas e foco na cor do texto */
+html[data-contrast="high"] {
+  --bg: light-dark(#FFFFFF, #000000);
+  --surface: light-dark(#FFFFFF, #000000);
+  --text: light-dark(#000000, #FFFFFF);
+  --muted: light-dark(#1F1F1F, #EBEBEB);
+  --accent: light-dark(#00513C, #7EF0C5);
+  --on-accent: light-dark(#FFFFFF, #000000);
+  --border: light-dark(#000000, #FFFFFF);
+  --soft: light-dark(#FFFFFF, #000000);
+  --focus: light-dark(#000000, #FFFFFF);
+  --selection: light-dark(#FFE14D, #00513C);
+}
+
+/* ---------- Tamanho da fonte ---------- */
+
+/* O Streamlit mede quase tudo em rem, então mudar a fonte da raiz escala a tela toda */
+html[data-font="small"] { font-size: 14px; }
+html[data-font="medium"] { font-size: 16px; }
+html[data-font="large"] { font-size: 19px; }
+
+/* ---------- Animações ---------- */
+
+/* Respeita a preferência do sistema e a opção "Reduzir animações" da barra lateral */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* ---------- Foco de teclado ---------- */
+
+/* Contorno sempre visível em quem recebe foco pelo teclado */
+.stApp :focus-visible {
+  outline: 3px solid var(--focus) !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+/* Rádios e chaves escondem o input real: o contorno vai na opção inteira */
+.stApp label:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+/* Campo de pergunta: o contorno vai na caixa, não só no texto */
+[data-testid="stChatInput"] > div:has(textarea:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Alvos de toque (mínimo de 44px) ---------- */
+
+.stApp button,
+.stApp summary {
+  min-height: 44px;
+}
+[data-testid="stRadio"] [role="radiogroup"] label,
+[data-testid="stCheckbox"] label {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+/* Espaço menor entre as opções para "Pequeno / Médio / Grande" caberem numa linha */
+[data-testid="stRadio"] [role="radiogroup"] { column-gap: 0.5rem; }
+[data-testid="stRadio"] [role="radiogroup"] label { margin-right: 0; }
+/* Botões pequenos do próprio Streamlit: ajuda "?", menu, abrir barra lateral e enviar */
+[data-testid="stTooltipHoverTarget"] button,
+[data-testid="stHeader"] button,
+[data-testid="stExpandSidebarButton"],
+[data-testid="stChatInputSubmitButton"] {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* ---------- Cabeçalho ---------- */
+
+/* Esconde o ícone de link que o Streamlit coloca ao lado dos títulos */
+[data-testid="stHeaderActionElements"] { display: none; }
+
+.app-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+.app-header .logo { flex-shrink: 0; }
+.app-header .logo rect { fill: var(--accent); }
+.app-header .logo .logo-mark { fill: var(--on-accent); }
+.app-header .logo .logo-lines {
+  stroke: var(--accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+.app-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+  color: var(--text);
+}
+.app-header .subtitle {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.45;
+  max-width: 60ch;
+}
+.app-header .notice {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+@media (max-width: 640px) {
+  .app-header h1 { font-size: 1.3rem; }
+  .app-header .logo { width: 36px; height: 36px; }
+}
+
+/* ---------- Conteúdo das mensagens ---------- */
+
+/* Trecho do documento dentro do expander "Fontes" */
+.excerpt {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 4px 0 14px;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.source-title {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+.muted {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* Detalhes de navegador no tom da marca */
+::selection { background: var(--selection); color: var(--text); }
+.stApp { caret-color: var(--accent); }
+
+/* Botão principal: texto com contraste garantido sobre a cor de destaque */
+[data-testid="stBaseButton-primary"],
+[data-testid="stBaseButton-primary"] p {
+  color: var(--on-accent) !important;
+}
+
+/* ---------- Alto contraste nos componentes do Streamlit ---------- */
+
+/* No modo normal o config.toml já pinta os componentes; aqui reforçamos cores e bordas */
+html[data-contrast="high"] .stApp,
+html[data-contrast="high"] [data-testid="stHeader"],
+html[data-contrast="high"] [data-testid="stBottomBlockContainer"],
+html[data-contrast="high"] [data-testid="stBottom"] > div {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+html[data-contrast="high"] [data-testid="stSidebar"] {
+  background: var(--bg) !important;
+  border-right: 2px solid var(--border) !important;
+}
+html[data-contrast="high"] .stApp p,
+html[data-contrast="high"] .stApp li,
+html[data-contrast="high"] .stApp label,
+html[data-contrast="high"] .stApp h2,
+html[data-contrast="high"] .stApp h3,
+html[data-contrast="high"] .stApp summary,
+html[data-contrast="high"] [data-testid="stCaptionContainer"] {
+  color: var(--text) !important;
+}
+html[data-contrast="high"] [data-testid^="stBaseButton-"],
+html[data-contrast="high"] [data-testid="stExpander"] details,
+html[data-contrast="high"] [data-testid="stChatInput"] > div,
+html[data-contrast="high"] [data-testid="stFileUploaderDropzone"] {
+  border: 2px solid var(--border) !important;
+}
+html[data-contrast="high"] [data-testid="stBaseButton-secondary"],
+html[data-contrast="high"] [data-testid="stFileUploaderDropzone"],
+html[data-contrast="high"] [data-testid="stChatInput"] > div,
+html[data-contrast="high"] [data-testid="stChatInput"] textarea {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+html[data-contrast="high"] [data-testid="stBaseButton-primary"] {
+  background: var(--accent) !important;
+}
+/* Precisa vir depois da regra dos parágrafos, senão o texto do botão fica sem contraste */
+html[data-contrast="high"] .stApp [data-testid="stBaseButton-primary"],
+html[data-contrast="high"] .stApp [data-testid="stBaseButton-primary"] p {
+  color: var(--on-accent) !important;
+}
+html[data-contrast="high"] [data-testid="stChatMessage"] {
+  background: var(--bg) !important;
+  border: 1px solid var(--border);
+}
+html[data-contrast="high"] .stApp a {
+  color: var(--accent) !important;
+  text-decoration: underline !important;
+}

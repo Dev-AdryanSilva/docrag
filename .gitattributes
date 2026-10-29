@@ -1,0 +1,8 @@
+# Texto sempre com LF (Docker e GitHub Actions rodam em Linux)
+* text=auto eol=lf
+
+# Binários: nunca converter quebras de linha
+*.pdf binary
+*.png binary
+*.jpg binary
+*.docx binary

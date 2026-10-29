@@ -1,0 +1,11 @@
+# Segredos: nunca commitar
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Dados gerados em execução
+chroma_data/
