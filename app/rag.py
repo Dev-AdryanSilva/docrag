@@ -1,3 +1,5 @@
+import re
+
 from langchain_core.documents import Document as Chunk
 
 from app import llm
@@ -67,7 +69,10 @@ def build_context(chunks: list[Chunk]) -> str:
 def was_cited(chunk: Chunk, answer: str) -> bool:
     """Diz se o LLM citou este chunk na resposta (documento e, quando existe, a página)."""
     page = chunk.metadata["pagina"]
-    return chunk.metadata["documento"] in answer and (page == NO_PAGE or f"p. {page}" in answer)
+    # \b: "p. 1" não pode casar com "p. 10"
+    return chunk.metadata["documento"] in answer and (
+        page == NO_PAGE or re.search(rf"p\. {page}\b", answer) is not None
+    )
 
 
 def build_sources(chunks: list[Chunk], answer: str) -> list[dict]:
